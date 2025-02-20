@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_TAG = "1.0"
+        DOCKER_USER = "varsha0822"
+        DOCKER_PASS = "varsha0822"
+    }
+
+    stages {
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    echo "Logging into Docker..."
+                    echo "echo \${DOCKER_PASS} | docker login -u \${DOCKER_USER} --password-stdin"
+
+                    echo "Building frontend image..."
+                    echo "docker build -t frontend-app:\${IMAGE_TAG} ./public"
+                    echo "docker tag frontend-app:\${IMAGE_TAG} \${DOCKER_USER}/frontend-app:\${IMAGE_TAG}"
+                    echo "docker push \${DOCKER_USER}/frontend-app:\${IMAGE_TAG}"
+
+                    echo "Building backend image..."
+                    echo "docker build -t backend-app:\${IMAGE_TAG} ./server"
+                    echo "docker tag backend-app:\${IMAGE_TAG} \${DOCKER_USER}/backend-app:\${IMAGE_TAG}"
+                    echo "docker push \${DOCKER_USER}/backend-app:\${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Deploy Backend App') {
+            steps {
+                script {
+                    echo "Deploying backend app..."
+                    echo "kubectl apply -f server/backend-deployment.yaml"
+                    echo "kubectl rollout status deployment/backend-deployment"
+                }
+            }
+        }
+
+        stage('Deploy Frontend App') {
+            steps {
+                script {
+                    echo "Deploying frontend app..."
+                    echo "kubectl apply -f public/frontend-deployment.yaml"
+                    echo "kubectl rollout status deployment/frontend-deployment"
+                }
+            }
+        }
+    }
+}
